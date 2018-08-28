@@ -35,7 +35,19 @@ class MoviesController extends Controller
      */
     public function store(Request $request)
     {
-        return Movie::create($request->all());
+        $validatedData = $request->validate([
+            'title' => 'required',
+            'director' => 'required',
+            'duration' => 'required|digits_between:1, 
+            500',
+            'releaseDate' => 'required',
+            'imageUrl' => 'url'
+        ]);
+        $titleMatch = Movie::where('title', $validatedData['title'])->first();
+        $releaseDateMatch = Movie::where('releaseDate', $validatedData['releaseDate'])->first();
+        if($validatedData && (!$titleMatch || !$releaseDateMatch)) {
+            return Movie::create($request->all());
+        }
     }
 
     /**
@@ -69,6 +81,14 @@ class MoviesController extends Controller
      */
     public function update(Request $request, $id)
     {
+        $validatedData = $request->validate([
+            'title' => 'required',
+            'director' => 'required',
+            'duration' => 'required|digits_between:1, 
+            500',
+            'releaseDate' => 'required',
+            'imageUrl' => 'url'
+        ]);
         return Movie::findOrFail($id)->update($request->all());
     }
 
