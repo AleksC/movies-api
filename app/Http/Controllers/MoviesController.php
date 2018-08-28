@@ -12,9 +12,21 @@ class MoviesController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        return Movie::all();
+        $title = $request->query('title');
+        $take = $request->query('take');
+        $skip = $request->query('skip');
+
+        if(!$title && $take && !$skip) {
+            return Movie::all()->take($take);
+        }
+        else if ($take && $skip && !$title) {
+            return Movie::skip($skip)->take($take)->get();
+        }
+        else {
+            return Movie::search($request->query('title'));
+        }
     }
 
     /**
@@ -89,7 +101,11 @@ class MoviesController extends Controller
             'releaseDate' => 'required',
             'imageUrl' => 'url'
         ]);
-        return Movie::findOrFail($id)->update($request->all());
+        $titleMatch = Movie::where('title', $validatedData['title'])->first();
+        $releaseDateMatch = Movie::where('releaseDate', $validatedData['releaseDate'])->first();
+        if($validatedData && (!$titleMatch || !$releaseDateMatch)) {
+            return Movie::where('id', $id)->update($request->all());
+        }
     }
 
     /**
